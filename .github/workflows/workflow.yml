@@ -1,6 +1,7 @@
 name: main-workflow
 
-env: {}
+env:
+  IMAGE_REPOSITORY: josephines/university
 
 on:
   push:
@@ -9,7 +10,7 @@ on:
   pull_request:
     branches:
       - master
-      
+
 jobs:
   # Run all unit tests.
   run-tests:
@@ -28,3 +29,19 @@ jobs:
       # Run unit tests.
       - name: Run unit tests
         run: go test -v ./...
+  # Build and release.
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      # Check out source code.
+      - name: Check out source code
+        uses: actions/checkout@v3
+      # Build and push container image.
+      - name: Build and push container image
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: ${{ env.IMAGE_REPOSITORY }}
+          tag_with_ref: true
+          tag_with_sha: true # sha-${GITHUB_SHA::7}
